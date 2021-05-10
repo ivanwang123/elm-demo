@@ -6,23 +6,14 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Page.CountryInfo as CountryInfo
 import Page.Home as Home
-import Route exposing (Route)
+import Route exposing (Route(..))
+import Session exposing (Session)
 import Url exposing (Url)
 
 
-
--- Model
-
-
-type alias Model =
-    { route : Route
-    , page : Page
-    , navKey : Nav.Key
-    }
-
-
-type Page
-    = NotFoundPage
+type Model
+    = NotFoundPage Session
+    | Redirect Session
     | HomePage Home.Model
     | CountryInfoPage CountryInfo.Model
 
@@ -40,41 +31,27 @@ type Msg
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url navKey =
+    changeRouteTo (Route.parseUrl url)
+        (Redirect (Session.fromKey navKey))
+
+
+changeRouteTo : Route -> Model -> ( Model, Cmd Msg )
+changeRouteTo route model =
     let
-        initialModel =
-            { route = Route.parseUrl url
-            , page = NotFoundPage
-            , navKey = navKey
-            }
+        session =
+            toSession model
     in
-    initCurrentPage ( initialModel, Cmd.none )
+    case route of
+        Route.NotFound ->
+            ( NotFoundPage session, Cmd.none )
 
+        Route.Home ->
+            Home.init session
+                |> updateWith HomePage HomeMsg model
 
-initCurrentPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-initCurrentPage ( model, prevCmds ) =
-    let
-        ( curPage, curCmds ) =
-            case model.route of
-                Route.NotFound ->
-                    ( NotFoundPage, Cmd.none )
-
-                Route.Home ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            Home.init
-                    in
-                    ( HomePage pageModel, Cmd.map HomeMsg pageCmds )
-
-                Route.CountryInfo alphaCode ->
-                    let
-                        ( pageModel, pageCmds ) =
-                            CountryInfo.init alphaCode
-                    in
-                    ( CountryInfoPage pageModel, Cmd.map CountryInfoMsg pageCmds )
-    in
-    ( { model | page = curPage }
-    , Cmd.batch [ prevCmds, curCmds ]
-    )
+        Route.CountryInfo alphaCode ->
+            CountryInfo.init alphaCode session
+                |> updateWith CountryInfoPage CountryInfoMsg model
 
 
 
@@ -83,45 +60,54 @@ initCurrentPage ( model, prevCmds ) =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model.page ) of
+    case ( msg, model ) of
         ( LinkClicked urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl model.navKey (Url.toString url) )
+                    case url.fragment of
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                        Just _ ->
+                            ( model, Nav.pushUrl (Session.navKey (toSession model)) (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )
 
         ( UrlChanged url, _ ) ->
-            let
-                newRoute =
-                    Route.parseUrl url
-            in
-            ( { model | route = newRoute }
-            , Cmd.none
-            )
-                |> initCurrentPage
+            changeRouteTo (Route.parseUrl url) model
 
         ( HomeMsg pageMsg, HomePage pageModel ) ->
-            let
-                ( updatedModel, updatedCmd ) =
-                    Home.update pageMsg pageModel
-            in
-            ( { model | page = HomePage updatedModel }
-            , Cmd.map HomeMsg updatedCmd
-            )
+            Home.update pageMsg pageModel
+                |> updateWith HomePage HomeMsg model
 
         ( CountryInfoMsg pageMsg, CountryInfoPage pageModel ) ->
-            let
-                ( updatedModel, updatedCmd ) =
-                    CountryInfo.update pageMsg pageModel
-            in
-            ( { model | page = CountryInfoPage updatedModel }
-            , Cmd.map CountryInfoMsg updatedCmd
-            )
+            CountryInfo.update pageMsg pageModel
+                |> updateWith CountryInfoPage CountryInfoMsg model
 
         ( _, _ ) ->
             ( model, Cmd.none )
+
+
+updateWith : (subModel -> Model) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
+updateWith toModel toMsg model ( subModel, subCmd ) =
+    ( toModel subModel, Cmd.map toMsg subCmd )
+
+
+toSession : Model -> Session
+toSession model =
+    case model of
+        NotFoundPage session ->
+            session
+
+        Redirect session ->
+            session
+
+        HomePage pageModel ->
+            Home.toSession pageModel
+
+        CountryInfoPage pageModel ->
+            CountryInfo.toSession pageModel
 
 
 
@@ -149,8 +135,11 @@ view model =
 
 pageView : Model -> Html Msg
 pageView model =
-    case model.page of
-        NotFoundPage ->
+    case model of
+        NotFoundPage _ ->
+            notFoundView
+
+        Redirect _ ->
             notFoundView
 
         HomePage pageModel ->

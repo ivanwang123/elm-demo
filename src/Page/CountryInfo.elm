@@ -6,6 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
 import RemoteData exposing (WebData)
+import Session exposing (Session)
 import String exposing (toInt)
 
 
@@ -14,7 +15,9 @@ import String exposing (toInt)
 
 
 type alias Model =
-    { country : WebData CountryLong }
+    { session : Session
+    , country : WebData CountryLong
+    }
 
 
 type Msg
@@ -25,13 +28,20 @@ type Msg
 -- Init
 
 
-init : String -> ( Model, Cmd Msg )
-init alphaCode =
+init : String -> Session -> ( Model, Cmd Msg )
+init alphaCode session =
     let
         initialModel =
-            { country = RemoteData.Loading }
+            { session = session
+            , country = RemoteData.Loading
+            }
     in
     ( initialModel, getCountry alphaCode )
+
+
+toSession : Model -> Session
+toSession model =
+    model.session
 
 
 
@@ -92,7 +102,7 @@ viewCountry : CountryLong -> Html Msg
 viewCountry country =
     div [ class "main-content" ]
         [ nav []
-            [ a [ href "/#/" ] [ text "← Back" ] ]
+            [ a [ href "/#" ] [ text "← Back" ] ]
         , section
             [ class "general-section" ]
             [ h1 [ class "name" ] [ text (country.name ++ " (" ++ country.alpha3Code ++ ")") ]

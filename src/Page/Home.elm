@@ -6,6 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
 import RemoteData exposing (RemoteData, WebData)
+import Session exposing (Session)
 
 
 
@@ -13,7 +14,9 @@ import RemoteData exposing (RemoteData, WebData)
 
 
 type alias Model =
-    { countries : WebData (List CountryShort) }
+    { session : Session
+    , countries : WebData (List CountryShort)
+    }
 
 
 type Msg
@@ -24,13 +27,20 @@ type Msg
 -- Init
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Session -> ( Model, Cmd Msg )
+init session =
     let
         initialModel =
-            { countries = RemoteData.Loading }
+            { session = session
+            , countries = RemoteData.Loading
+            }
     in
     ( initialModel, getCountries )
+
+
+toSession : Model -> Session
+toSession model =
+    model.session
 
 
 
@@ -94,7 +104,7 @@ viewCountries countries =
 viewCountry : CountryShort -> Html Msg
 viewCountry country =
     div [ class "country-container" ]
-        [ a [ href ("/#/country/" ++ country.alpha3Code) ]
+        [ a [ href ("/#country/" ++ country.alpha3Code) ]
             [ img [ src country.flag ] []
             , text country.name
             ]
