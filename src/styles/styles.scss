@@ -1,0 +1,125 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.container {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  height: 100%;
+}
+
+.home-page {
+  grid-column: 2 / 12;
+
+  .countries-section {
+    column-count: 4;
+    column-gap: 0rem;
+
+    .country-container {
+      display: inline-block;
+      margin: 0.5rem;
+      margin-bottom: 3rem;
+
+      a {
+        color: #a1a1aa; // gray-400
+        text-decoration: none;
+        font-weight: bold;
+        transition: color 0.3s;
+
+        &:hover {
+          color: #000;
+
+          img {
+            box-shadow: 0px 3px 7px 1px #00000033;
+          }
+        }
+      }
+
+      &:hover {
+        animation: bobbing 1s infinite ease-in-out;
+      }
+
+      img {
+        width: 100%;
+        border: 1px solid #ccc;
+        transition: box-shadow 0.3s;
+      }
+    }
+  }
+}
+
+@keyframes bobbing {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.country-info-page {
+  grid-column: 2 / 12;
+
+  .main-content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    nav {
+      width: 100%;
+      padding: 1rem;
+
+      a {
+        color: #a1a1aa; // gray-400
+        text-decoration: none;
+        transition: color 0.3s;
+
+        &:hover {
+          color: #000;
+        }
+      }
+    }
+
+    .general-section {
+      .alt-names {
+        color: #a1a1aa; // gray-400
+      }
+
+      .flag {
+        width: 100%;
+        box-shadow: 0px 4px 7px 3px #00000033;
+      }
+    }
+
+    .info-section {
+      margin-top: 6rem;
+      span {
+        font-weight: bold;
+      }
+    }
+
+    section {
+      width: 50%;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+  }
+}
+
+.center-text-page {
+  grid-column: 1 / 13;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
