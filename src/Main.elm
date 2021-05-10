@@ -4,11 +4,18 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Page
+import Page.Blank as Blank
 import Page.CountryInfo as CountryInfo
 import Page.Home as Home
+import Page.NotFound as NotFound
 import Route exposing (Route(..))
 import Session exposing (Session)
 import Url exposing (Url)
+
+
+
+-- Model
 
 
 type Model
@@ -33,25 +40,6 @@ init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url navKey =
     changeRouteTo (Route.parseUrl url)
         (Redirect (Session.fromKey navKey))
-
-
-changeRouteTo : Route -> Model -> ( Model, Cmd Msg )
-changeRouteTo route model =
-    let
-        session =
-            toSession model
-    in
-    case route of
-        Route.NotFound ->
-            ( NotFoundPage session, Cmd.none )
-
-        Route.Home ->
-            Home.init session
-                |> updateWith HomePage HomeMsg model
-
-        Route.CountryInfo alphaCode ->
-            CountryInfo.init alphaCode session
-                |> updateWith CountryInfoPage CountryInfoMsg model
 
 
 
@@ -89,9 +77,23 @@ update msg model =
             ( model, Cmd.none )
 
 
-updateWith : (subModel -> Model) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
-updateWith toModel toMsg model ( subModel, subCmd ) =
-    ( toModel subModel, Cmd.map toMsg subCmd )
+changeRouteTo : Route -> Model -> ( Model, Cmd Msg )
+changeRouteTo route model =
+    let
+        session =
+            toSession model
+    in
+    case route of
+        Route.NotFound ->
+            ( NotFoundPage session, Cmd.none )
+
+        Route.Home ->
+            Home.init session
+                |> updateWith HomePage HomeMsg model
+
+        Route.CountryInfo alphaCode ->
+            CountryInfo.init alphaCode session
+                |> updateWith CountryInfoPage CountryInfoMsg model
 
 
 toSession : Model -> Session
@@ -110,6 +112,11 @@ toSession model =
             CountryInfo.toSession pageModel
 
 
+updateWith : (subModel -> Model) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
+updateWith toModel toMsg model ( subModel, subCmd ) =
+    ( toModel subModel, Cmd.map toMsg subCmd )
+
+
 
 -- Subscriptions
 
@@ -125,35 +132,29 @@ subscriptions _ =
 
 view : Model -> Document Msg
 view model =
-    { title = "My Elm App"
-    , body =
-        [ div [ class "container" ]
-            [ pageView model ]
-        ]
-    }
-
-
-pageView : Model -> Html Msg
-pageView model =
     case model of
         NotFoundPage _ ->
-            notFoundView
+            Page.view Page.Other NotFound.view
 
         Redirect _ ->
-            notFoundView
+            Page.view Page.Other Blank.view
 
         HomePage pageModel ->
-            Home.view pageModel
-                |> Html.map HomeMsg
+            viewPage Page.Other HomeMsg (Home.view pageModel)
 
         CountryInfoPage pageModel ->
-            CountryInfo.view pageModel
-                |> Html.map CountryInfoMsg
+            viewPage Page.Other CountryInfoMsg (CountryInfo.view pageModel)
 
 
-notFoundView : Html Msg
-notFoundView =
-    div [ class "center-text-page" ] [ text "Oops, page not found" ]
+viewPage : Page.Page -> (msg -> Msg) -> { title : String, content : Html msg } -> Document Msg
+viewPage page toMsg pageView =
+    let
+        { title, body } =
+            Page.view page pageView
+    in
+    { title = title
+    , body = List.map (Html.map toMsg) body
+    }
 
 
 

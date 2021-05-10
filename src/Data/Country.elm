@@ -27,7 +27,7 @@ type alias CountryLong =
     , nativeName : String
     , altSpellings : List String
     , area : Float
-    , gini : Maybe Float
+    , gini : String
     , timezones : List String
     , currencies : List String
     , languages : List String
@@ -65,7 +65,7 @@ countryLongDecoder =
         |> Pipeline.required "nativeName" string
         |> Pipeline.required "altSpellings" (list string)
         |> Pipeline.required "area" float
-        |> Pipeline.required "gini" (Decode.nullable float)
+        |> Pipeline.optional "gini" string "Unavailable"
         |> Pipeline.required "timezones" (list string)
         |> Pipeline.required "currencies" (list currencyDecoder)
         |> Pipeline.required "languages" (list languageDecoder)
@@ -80,7 +80,7 @@ currencyDecoder : Decoder String
 currencyDecoder =
     Decode.map .name <|
         (Decode.succeed Currency
-            |> Pipeline.required "name" string
+            |> Pipeline.optional "name" string "unknown"
         )
 
 

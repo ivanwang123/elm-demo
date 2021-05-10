@@ -1,7 +1,6 @@
 module Page.Home exposing (..)
 
 import Data.Country as Country exposing (..)
-import Debug exposing (log)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
@@ -63,10 +62,6 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         CountriesResponse res ->
-            let
-                _ =
-                    log "countries" res
-            in
             ( { model | countries = res }, Cmd.none )
 
 
@@ -74,10 +69,13 @@ update msg model =
 -- View
 
 
-view : Model -> Html Msg
+view : Model -> { title : String, content : Html Msg }
 view model =
-    div [ class "home-page" ]
-        [ viewCountriesOrError model ]
+    { title = "Countries"
+    , content =
+        div [ class "home-page" ]
+            [ viewCountriesOrError model ]
+    }
 
 
 viewCountriesOrError : Model -> Html Msg

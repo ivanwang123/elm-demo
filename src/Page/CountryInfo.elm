@@ -66,7 +66,7 @@ update msg model =
         CountriesResponse res ->
             let
                 _ =
-                    log "country" res
+                    log "res" res
             in
             ( { model | country = res }, Cmd.none )
 
@@ -75,10 +75,22 @@ update msg model =
 -- View
 
 
-view : Model -> Html Msg
+view : Model -> { title : String, content : Html Msg }
 view model =
-    div [ class "country-info-page" ]
-        [ viewCountryOrError model ]
+    let
+        countryName =
+            case model.country of
+                RemoteData.Success country ->
+                    country.name
+
+                _ ->
+                    "Country Info"
+    in
+    { title = countryName
+    , content =
+        div [ class "country-info-page" ]
+            [ viewCountryOrError model ]
+    }
 
 
 viewCountryOrError : Model -> Html Msg
@@ -95,6 +107,10 @@ viewCountryOrError model =
 
         -- TODO: Improve error messages
         RemoteData.Failure error ->
+            let
+                _ =
+                    log "err" error
+            in
             text "Error"
 
 
@@ -118,19 +134,9 @@ viewCountry country =
             , p [] [ span [] [ text "Region: " ], text (country.subregion ++ ", " ++ country.region) ]
             , p [] [ span [] [ text "Area: " ], text (humanizeNumber (round country.area) ++ " km"), sup [] [ text "2" ] ]
             , p [] [ span [] [ text "Timezones: " ], text (String.join ", " country.timezones) ]
-            , p [] [ span [] [ text "Gini: " ], text (textGini country.gini) ]
+            , p [] [ span [] [ text "Gini: " ], text country.gini ]
             ]
         ]
-
-
-textGini : Maybe Float -> String
-textGini gini =
-    case gini of
-        Just giniNum ->
-            String.fromFloat giniNum
-
-        Nothing ->
-            "Unavailable"
 
 
 humanizeNumber : Int -> String
