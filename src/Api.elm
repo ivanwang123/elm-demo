@@ -8,7 +8,6 @@ import RemoteData exposing (WebData)
 
 
 -- HTTP
--- TODO: Figure out Msg type
 
 
 get : Endpoint -> Decoder a -> (WebData a -> msg) -> Cmd msg
@@ -24,5 +23,14 @@ get url decoder onResponse =
         }
 
 
-
--- Http.expectJson (RemoteData.fromResult >> CountriesResponse) countryLongDecoder
+post : Endpoint -> Http.Body -> Decoder a -> (WebData a -> msg) -> Cmd msg
+post url body decoder onResponse =
+    Endpoint.request
+        { method = "POST"
+        , url = url
+        , expect = Http.expectJson (RemoteData.fromResult >> onResponse) decoder
+        , headers = []
+        , body = body
+        , timeout = Nothing
+        , tracker = Nothing
+        }

@@ -24,6 +24,7 @@ type alias Model =
 
 type Msg
     = CountriesResponse (WebData CountryLong)
+    | GotSession Session
 
 
 
@@ -66,8 +67,30 @@ update msg model =
             let
                 _ =
                     log "res" res
+
+                cred =
+                    Session.Cred "myName" "token"
+
+                user =
+                    Session.User cred
             in
-            ( { model | country = res }, Cmd.none )
+            ( { model | country = res }, Session.store user )
+
+        GotSession session ->
+            let
+                _ =
+                    log "got session" session
+            in
+            ( { model | session = session }, Cmd.none )
+
+
+
+-- Subscriptions
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Session.changes GotSession (Session.navKey model.session)
 
 
 
@@ -107,16 +130,8 @@ viewCountryOrError model =
         -- TODO: Improve error messages
         RemoteData.Failure error ->
             let
-                errMsg =
-                    case error of
-                        Http.BadBody err ->
-                            err
-
-                        _ ->
-                            "nothing"
-
                 _ =
-                    log "err" errMsg
+                    log "error" error
             in
             text "Error"
 

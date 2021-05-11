@@ -2,15 +2,18 @@ module Main exposing (..)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
+import Debug exposing (log)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Json.Decode as D exposing (Decoder, Value)
+import Json.Decode.Pipeline as Pipeline
 import Page
 import Page.Blank as Blank
 import Page.CountryInfo as CountryInfo
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Route exposing (Route(..))
-import Session exposing (Session)
+import Session exposing (Cred, Session, User)
 import Url exposing (Url)
 
 
@@ -36,10 +39,10 @@ type Msg
 -- Init
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url navKey =
+init : Maybe User -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init maybeUser url navKey =
     changeRouteTo (Route.parseUrl url)
-        (Redirect (Session.fromKey navKey))
+        (Redirect (Session.fromUser navKey maybeUser))
 
 
 
@@ -122,8 +125,20 @@ updateWith toModel toMsg model ( subModel, subCmd ) =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
+subscriptions model =
+    case model of
+        NotFoundPage _ ->
+            Sub.none
+
+        Redirect _ ->
+            Sub.none
+
+        HomePage pageModel ->
+            Sub.none
+
+        -- Sub.map HomeMsg (Home.subscriptions pageModel)
+        CountryInfoPage pageModel ->
+            Sub.map CountryInfoMsg (CountryInfo.subscriptions pageModel)
 
 
 
@@ -161,13 +176,45 @@ viewPage page toMsg pageView =
 -- Main
 
 
-main : Program () Model Msg
+main : Program Value Model Msg
 main =
-    Browser.application
+    application Session.userDecoder
         { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
         , onUrlRequest = LinkClicked
         , onUrlChange = UrlChanged
+        }
+
+
+application :
+    Decoder (Cred -> user)
+    ->
+        { init : Maybe user -> Url -> Nav.Key -> ( model, Cmd msg )
+        , onUrlChange : Url -> msg
+        , onUrlRequest : Browser.UrlRequest -> msg
+        , subscriptions : model -> Sub msg
+        , update : msg -> model -> ( model, Cmd msg )
+        , view : model -> Browser.Document msg
+        }
+    -> Program Value model msg
+application userDecoder app =
+    let
+        newInit flags url navKey =
+            let
+                maybeUser =
+                    D.decodeValue D.string flags
+                        |> Result.andThen (D.decodeString (Session.storageDecoder userDecoder))
+                        |> Result.toMaybe
+            in
+            app.init maybeUser url navKey
+    in
+    Browser.application
+        { init = newInit
+        , onUrlChange = app.onUrlChange
+        , onUrlRequest = app.onUrlRequest
+        , subscriptions = app.subscriptions
+        , update = app.update
+        , view = app.view
         }
