@@ -18,7 +18,7 @@ view page { title, content } =
 
 viewHeader : Page -> Html msg
 viewHeader page =
-    nav []
+    nav [ class "text-blue-100 font-bold underline px-12 py-4" ]
         [ text "navbar" ]
 
 

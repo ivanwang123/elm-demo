@@ -1,5 +1,7 @@
 module Page.CountryInfo exposing (..)
 
+import Api
+import Api.Endpoint as Endpoint
 import Data.Country exposing (..)
 import Debug exposing (log)
 import Html exposing (..)
@@ -50,10 +52,7 @@ toSession model =
 
 getCountry : String -> Cmd Msg
 getCountry alphaCode =
-    Http.get
-        { url = "https://restcountries.eu/rest/v2/alpha/" ++ alphaCode
-        , expect = Http.expectJson (RemoteData.fromResult >> CountriesResponse) countryLongDecoder
-        }
+    Api.get (Endpoint.country alphaCode) countryLongDecoder CountriesResponse
 
 
 
@@ -108,8 +107,16 @@ viewCountryOrError model =
         -- TODO: Improve error messages
         RemoteData.Failure error ->
             let
+                errMsg =
+                    case error of
+                        Http.BadBody err ->
+                            err
+
+                        _ ->
+                            "nothing"
+
                 _ =
-                    log "err" error
+                    log "err" errMsg
             in
             text "Error"
 
@@ -134,7 +141,7 @@ viewCountry country =
             , p [] [ span [] [ text "Region: " ], text (country.subregion ++ ", " ++ country.region) ]
             , p [] [ span [] [ text "Area: " ], text (humanizeNumber (round country.area) ++ " km"), sup [] [ text "2" ] ]
             , p [] [ span [] [ text "Timezones: " ], text (String.join ", " country.timezones) ]
-            , p [] [ span [] [ text "Gini: " ], text country.gini ]
+            , p [] [ span [] [ text "Gini: " ], text (String.fromFloat country.gini) ]
             ]
         ]
 

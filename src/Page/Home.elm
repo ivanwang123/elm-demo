@@ -1,5 +1,7 @@
 module Page.Home exposing (..)
 
+import Api
+import Api.Endpoint as Endpoint
 import Data.Country as Country exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -48,13 +50,14 @@ toSession model =
 
 getCountries : Cmd Msg
 getCountries =
-    Http.get
-        { url = "https://restcountries.eu/rest/v2/all?fields=name;alpha3Code;flag"
-        , expect = Http.expectJson (RemoteData.fromResult >> CountriesResponse) countriesDecoder
-        }
+    Api.get Endpoint.countries countriesDecoder CountriesResponse
 
 
 
+-- Http.get
+--     { url = "https://restcountries.eu/rest/v2/all?fields=name;alpha3Code;flag"
+--     , expect = Http.expectJson (RemoteData.fromResult >> CountriesResponse) countriesDecoder
+--     }
 -- Update
 
 
