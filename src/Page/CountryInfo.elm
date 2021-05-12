@@ -8,6 +8,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Http
 import RemoteData exposing (WebData)
+import Route
 import Session exposing (Session)
 import String exposing (toInt)
 
@@ -39,7 +40,7 @@ init alphaCode session =
             , country = RemoteData.Loading
             }
     in
-    ( initialModel, getCountry alphaCode )
+    ( initialModel, Route.privateRoute session (getCountry alphaCode) )
 
 
 toSession : Model -> Session

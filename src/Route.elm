@@ -3,6 +3,7 @@ module Route exposing (..)
 import Browser.Navigation as Nav
 import Html exposing (Attribute)
 import Html.Attributes as Attr
+import Session exposing (Session)
 import Url exposing (Url)
 import Url.Parser exposing (..)
 
@@ -49,6 +50,24 @@ replaceUrl key route =
 href : Route -> Attribute msg
 href route =
     Attr.href (routeToString route)
+
+
+privateRoute : Session -> Cmd msg -> Cmd msg
+privateRoute session defaultCmd =
+    if Session.isAuthenticated session then
+        defaultCmd
+
+    else
+        replaceUrl (Session.navKey session) Home
+
+
+unPrivateRoute : Session -> Cmd msg -> Cmd msg
+unPrivateRoute session defaultCmd =
+    if Session.isAuthenticated session then
+        replaceUrl (Session.navKey session) Home
+
+    else
+        defaultCmd
 
 
 

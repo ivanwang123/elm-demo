@@ -74,6 +74,10 @@ update msg model =
                     ( model, Nav.load href )
 
         ( UrlChanged url, _ ) ->
+            let
+                _ =
+                    log "url" "url changed"
+            in
             changeRouteTo (Route.parseUrl url) model
 
         ( GotSession session, Redirect _ ) ->
@@ -119,6 +123,9 @@ changeRouteTo route model =
             CountryInfo.init alphaCode session
                 |> updateWith CountryInfoPage CountryInfoMsg model
 
+        Route.Logout ->
+            ( model, Session.logout )
+
         Route.Register ->
             Register.init session
                 |> updateWith RegisterPage RegisterMsg model
@@ -126,9 +133,6 @@ changeRouteTo route model =
         Route.Login ->
             Login.init session
                 |> updateWith LoginPage LoginMsg model
-
-        Route.Logout ->
-            ( model, Session.logout )
 
 
 toSession : Model -> Session

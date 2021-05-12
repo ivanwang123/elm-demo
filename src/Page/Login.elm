@@ -32,7 +32,7 @@ init session =
         initialModel =
             { session = session }
     in
-    ( initialModel, Cmd.none )
+    ( initialModel, Route.unPrivateRoute session Cmd.none )
 
 
 toSession : Model -> Session

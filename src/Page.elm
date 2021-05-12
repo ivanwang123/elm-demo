@@ -36,13 +36,13 @@ viewMenu page maybeUser =
                 username =
                     Session.username user
             in
-            div []
+            div [ class "flex flex-col" ]
                 [ text ("Hello " ++ username)
                 , a [ Route.href Route.Logout ] [ text "Logout" ]
                 ]
 
         Nothing ->
-            div []
+            div [ class "flex flex-col" ]
                 [ a [ Route.href Route.Login ] [ text "Login" ]
                 , a [ Route.href Route.Register ] [ text "Sign up" ]
                 ]

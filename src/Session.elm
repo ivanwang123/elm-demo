@@ -65,6 +65,16 @@ toUser session =
             Nothing
 
 
+isAuthenticated : Session -> Bool
+isAuthenticated session =
+    case toUser session of
+        Just _ ->
+            True
+
+        Nothing ->
+            False
+
+
 userDecoder : Decoder (Cred -> User)
 userDecoder =
     D.succeed User
