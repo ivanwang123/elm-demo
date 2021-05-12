@@ -58,7 +58,7 @@ privateRoute session defaultCmd =
         defaultCmd
 
     else
-        replaceUrl (Session.navKey session) Home
+        replaceUrl (Session.navKey session) Login
 
 
 unPrivateRoute : Session -> Cmd msg -> Cmd msg

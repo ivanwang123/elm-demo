@@ -68,7 +68,7 @@ update msg model =
             ( { model | country = res }, Cmd.none )
 
         GotSession session ->
-            ( { model | session = session }, Cmd.none )
+            ( { model | session = session }, Route.replaceUrl (Session.navKey session) Route.Home )
 
 
 
