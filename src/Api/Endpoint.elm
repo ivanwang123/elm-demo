@@ -62,3 +62,12 @@ countries =
 country : String -> Endpoint
 country alphaCode =
     url [ "alpha", alphaCode ] []
+
+
+
+-- TODO: Add register endpoint
+
+
+register : Endpoint
+register =
+    url [ "register" ] []

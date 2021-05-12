@@ -12,6 +12,7 @@ import Page.Blank as Blank
 import Page.CountryInfo as CountryInfo
 import Page.Home as Home
 import Page.NotFound as NotFound
+import Page.Register as Register
 import Route exposing (Route(..))
 import Session exposing (Cred, Session, User)
 import Url exposing (Url)
@@ -26,6 +27,7 @@ type Model
     | Redirect Session
     | HomePage Home.Model
     | CountryInfoPage CountryInfo.Model
+    | RegisterPage Register.Model
 
 
 type Msg
@@ -33,6 +35,7 @@ type Msg
     | UrlChanged Url
     | HomeMsg Home.Msg
     | CountryInfoMsg CountryInfo.Msg
+    | RegisterMsg Register.Msg
 
 
 
@@ -76,6 +79,10 @@ update msg model =
             CountryInfo.update pageMsg pageModel
                 |> updateWith CountryInfoPage CountryInfoMsg model
 
+        ( RegisterMsg pageMsg, RegisterPage pageModel ) ->
+            Register.update pageMsg pageModel
+                |> updateWith RegisterPage RegisterMsg model
+
         ( _, _ ) ->
             ( model, Cmd.none )
 
@@ -98,6 +105,10 @@ changeRouteTo route model =
             CountryInfo.init alphaCode session
                 |> updateWith CountryInfoPage CountryInfoMsg model
 
+        Route.Register ->
+            Register.init session
+                |> updateWith RegisterPage RegisterMsg model
+
 
 toSession : Model -> Session
 toSession model =
@@ -113,6 +124,9 @@ toSession model =
 
         CountryInfoPage pageModel ->
             CountryInfo.toSession pageModel
+
+        RegisterPage pageModel ->
+            Register.toSession pageModel
 
 
 updateWith : (subModel -> Model) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
@@ -136,9 +150,11 @@ subscriptions model =
         HomePage pageModel ->
             Sub.none
 
-        -- Sub.map HomeMsg (Home.subscriptions pageModel)
         CountryInfoPage pageModel ->
             Sub.map CountryInfoMsg (CountryInfo.subscriptions pageModel)
+
+        RegisterPage pageModel ->
+            Sub.map RegisterMsg (Register.subscriptions pageModel)
 
 
 
@@ -159,6 +175,9 @@ view model =
 
         CountryInfoPage pageModel ->
             viewPage Page.Other CountryInfoMsg (CountryInfo.view pageModel)
+
+        RegisterPage pageModel ->
+            viewPage Page.Other RegisterMsg (Register.view pageModel)
 
 
 viewPage : Page.Page -> (msg -> Msg) -> { title : String, content : Html msg } -> Document Msg
