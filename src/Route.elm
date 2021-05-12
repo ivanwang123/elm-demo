@@ -13,6 +13,7 @@ type Route
     | CountryInfo String
     | Register
     | Login
+    | Logout
 
 
 parseUrl : Url -> Route
@@ -36,6 +37,7 @@ routeParser =
         , map CountryInfo (s "country" </> string)
         , map Register (s "register")
         , map Login (s "login")
+        , map Logout (s "logout")
         ]
 
 
@@ -75,3 +77,6 @@ routeToPieces route =
 
         Login ->
             [ "login" ]
+
+        Logout ->
+            [ "logout" ]

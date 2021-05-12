@@ -95,6 +95,11 @@ storeCredWith (Cred name token) =
         (Just json)
 
 
+logout : Cmd msg
+logout =
+    storeCache Nothing
+
+
 changes : (Session -> msg) -> Nav.Key -> Sub msg
 changes toMsg key =
     userChanges (\maybeUser -> toMsg (fromUser key maybeUser)) userDecoder

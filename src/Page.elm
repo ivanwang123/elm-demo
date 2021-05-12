@@ -1,8 +1,10 @@
 module Page exposing (..)
 
+import Api
 import Browser exposing (Document)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Route
 import Session
 
@@ -35,7 +37,9 @@ viewMenu page maybeUser =
                     Session.username user
             in
             div []
-                [ text ("Hello " ++ username) ]
+                [ text ("Hello " ++ username)
+                , a [ Route.href Route.Logout ] [ text "Logout" ]
+                ]
 
         Nothing ->
             div []

@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Api
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Debug exposing (log)
@@ -39,6 +40,7 @@ type Msg
     | CountryInfoMsg CountryInfo.Msg
     | RegisterMsg Register.Msg
     | LoginMsg Login.Msg
+    | GotSession Session
 
 
 
@@ -73,6 +75,11 @@ update msg model =
 
         ( UrlChanged url, _ ) ->
             changeRouteTo (Route.parseUrl url) model
+
+        ( GotSession session, Redirect _ ) ->
+            ( Redirect session
+            , Route.replaceUrl (Session.navKey session) Route.Home
+            )
 
         ( HomeMsg pageMsg, HomePage pageModel ) ->
             Home.update pageMsg pageModel
@@ -120,6 +127,9 @@ changeRouteTo route model =
             Login.init session
                 |> updateWith LoginPage LoginMsg model
 
+        Route.Logout ->
+            ( model, Session.logout )
+
 
 toSession : Model -> Session
 toSession model =
@@ -159,13 +169,17 @@ subscriptions model =
             Sub.none
 
         Redirect _ ->
-            Sub.none
+            let
+                _ =
+                    log "subscriptions" "redirect"
+            in
+            Session.changes GotSession (Session.navKey (toSession model))
 
         HomePage pageModel ->
-            Sub.none
+            Sub.map HomeMsg (Home.subscriptions pageModel)
 
         CountryInfoPage pageModel ->
-            Sub.none
+            Sub.map CountryInfoMsg (CountryInfo.subscriptions pageModel)
 
         RegisterPage pageModel ->
             Sub.map RegisterMsg (Register.subscriptions pageModel)
