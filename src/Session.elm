@@ -38,6 +38,13 @@ navKey session =
             key
 
 
+username : User -> String
+username (User cred) =
+    case cred of
+        Cred val _ ->
+            val
+
+
 fromUser : Nav.Key -> Maybe User -> Session
 fromUser key maybeUser =
     case maybeUser of
@@ -46,6 +53,16 @@ fromUser key maybeUser =
 
         Nothing ->
             Guest key
+
+
+toUser : Session -> Maybe User
+toUser session =
+    case session of
+        LoggedIn _ val ->
+            Just val
+
+        Guest _ ->
+            Nothing
 
 
 userDecoder : Decoder (Cred -> User)
@@ -59,13 +76,13 @@ store (User credVal) =
 
 
 storeCredWith : Cred -> Cmd msg
-storeCredWith (Cred username token) =
+storeCredWith (Cred name token) =
     let
         json =
             E.object
                 [ ( "user"
                   , E.object
-                        [ ( "username", E.string username )
+                        [ ( "username", E.string name )
                         , ( "token", E.string token )
                         ]
                   )

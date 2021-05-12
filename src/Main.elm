@@ -11,6 +11,7 @@ import Page
 import Page.Blank as Blank
 import Page.CountryInfo as CountryInfo
 import Page.Home as Home
+import Page.Login as Login
 import Page.NotFound as NotFound
 import Page.Register as Register
 import Route exposing (Route(..))
@@ -28,6 +29,7 @@ type Model
     | HomePage Home.Model
     | CountryInfoPage CountryInfo.Model
     | RegisterPage Register.Model
+    | LoginPage Login.Model
 
 
 type Msg
@@ -36,6 +38,7 @@ type Msg
     | HomeMsg Home.Msg
     | CountryInfoMsg CountryInfo.Msg
     | RegisterMsg Register.Msg
+    | LoginMsg Login.Msg
 
 
 
@@ -83,6 +86,10 @@ update msg model =
             Register.update pageMsg pageModel
                 |> updateWith RegisterPage RegisterMsg model
 
+        ( LoginMsg pageMsg, LoginPage pageModel ) ->
+            Login.update pageMsg pageModel
+                |> updateWith LoginPage LoginMsg model
+
         ( _, _ ) ->
             ( model, Cmd.none )
 
@@ -109,6 +116,10 @@ changeRouteTo route model =
             Register.init session
                 |> updateWith RegisterPage RegisterMsg model
 
+        Route.Login ->
+            Login.init session
+                |> updateWith LoginPage LoginMsg model
+
 
 toSession : Model -> Session
 toSession model =
@@ -127,6 +138,9 @@ toSession model =
 
         RegisterPage pageModel ->
             Register.toSession pageModel
+
+        LoginPage pageModel ->
+            Login.toSession pageModel
 
 
 updateWith : (subModel -> Model) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
@@ -151,10 +165,13 @@ subscriptions model =
             Sub.none
 
         CountryInfoPage pageModel ->
-            Sub.map CountryInfoMsg (CountryInfo.subscriptions pageModel)
+            Sub.none
 
         RegisterPage pageModel ->
             Sub.map RegisterMsg (Register.subscriptions pageModel)
+
+        LoginPage pageModel ->
+            Sub.map LoginMsg (Login.subscriptions pageModel)
 
 
 
@@ -163,28 +180,35 @@ subscriptions model =
 
 view : Model -> Document Msg
 view model =
+    let
+        user =
+            Session.toUser (toSession model)
+    in
     case model of
         NotFoundPage _ ->
-            Page.view Page.Other NotFound.view
+            Page.view user Page.Other NotFound.view
 
         Redirect _ ->
-            Page.view Page.Other Blank.view
+            Page.view user Page.Other Blank.view
 
         HomePage pageModel ->
-            viewPage Page.Other HomeMsg (Home.view pageModel)
+            viewPage user Page.Other HomeMsg (Home.view pageModel)
 
         CountryInfoPage pageModel ->
-            viewPage Page.Other CountryInfoMsg (CountryInfo.view pageModel)
+            viewPage user Page.Other CountryInfoMsg (CountryInfo.view pageModel)
 
         RegisterPage pageModel ->
-            viewPage Page.Other RegisterMsg (Register.view pageModel)
+            viewPage user Page.Other RegisterMsg (Register.view pageModel)
+
+        LoginPage pageModel ->
+            viewPage user Page.Other LoginMsg (Login.view pageModel)
 
 
-viewPage : Page.Page -> (msg -> Msg) -> { title : String, content : Html msg } -> Document Msg
-viewPage page toMsg pageView =
+viewPage : Maybe User -> Page.Page -> (msg -> Msg) -> { title : String, content : Html msg } -> Document Msg
+viewPage maybeUser page toMsg pageView =
     let
         { title, body } =
-            Page.view page pageView
+            Page.view maybeUser page pageView
     in
     { title = title
     , body = List.map (Html.map toMsg) body

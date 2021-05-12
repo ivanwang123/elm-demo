@@ -3,23 +3,45 @@ module Page exposing (..)
 import Browser exposing (Document)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Route
+import Session
 
 
 type Page
     = Other
 
 
-view : Page -> { title : String, content : Html msg } -> Document msg
-view page { title, content } =
+view : Maybe Session.User -> Page -> { title : String, content : Html msg } -> Document msg
+view maybeUser page { title, content } =
     { title = title
-    , body = viewHeader page :: content :: [ viewFooter ]
+    , body = viewHeader page maybeUser :: content :: [ viewFooter ]
     }
 
 
-viewHeader : Page -> Html msg
-viewHeader page =
+viewHeader : Page -> Maybe Session.User -> Html msg
+viewHeader page maybeUser =
     nav [ class "text-blue-100 font-bold underline px-12 py-4" ]
-        [ text "navbar" ]
+        [ a [ Route.href Route.Home ] [ text "Home" ]
+        , viewMenu page maybeUser
+        ]
+
+
+viewMenu : Page -> Maybe Session.User -> Html msg
+viewMenu page maybeUser =
+    case maybeUser of
+        Just user ->
+            let
+                username =
+                    Session.username user
+            in
+            div []
+                [ text ("Hello " ++ username) ]
+
+        Nothing ->
+            div []
+                [ a [ Route.href Route.Login ] [ text "Login" ]
+                , a [ Route.href Route.Register ] [ text "Sign up" ]
+                ]
 
 
 viewFooter : Html msg

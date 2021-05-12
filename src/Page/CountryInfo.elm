@@ -24,7 +24,6 @@ type alias Model =
 
 type Msg
     = CountriesResponse (WebData CountryLong)
-    | GotSession Session
 
 
 
@@ -64,33 +63,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         CountriesResponse res ->
-            let
-                _ =
-                    log "res" res
-
-                cred =
-                    Session.Cred "myName" "token"
-
-                user =
-                    Session.User cred
-            in
-            ( { model | country = res }, Session.store user )
-
-        GotSession session ->
-            let
-                _ =
-                    log "got session" session
-            in
-            ( { model | session = session }, Cmd.none )
-
-
-
--- Subscriptions
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Session.changes GotSession (Session.navKey model.session)
+            ( { model | country = res }, Cmd.none )
 
 
 

@@ -1,6 +1,8 @@
 module Route exposing (..)
 
 import Browser.Navigation as Nav
+import Html exposing (Attribute)
+import Html.Attributes as Attr
 import Url exposing (Url)
 import Url.Parser exposing (..)
 
@@ -10,6 +12,7 @@ type Route
     | Home
     | CountryInfo String
     | Register
+    | Login
 
 
 parseUrl : Url -> Route
@@ -32,12 +35,18 @@ routeParser =
         [ map Home top
         , map CountryInfo (s "country" </> string)
         , map Register (s "register")
+        , map Login (s "login")
         ]
 
 
 replaceUrl : Nav.Key -> Route -> Cmd msg
 replaceUrl key route =
     Nav.replaceUrl key (routeToString route)
+
+
+href : Route -> Attribute msg
+href route =
+    Attr.href (routeToString route)
 
 
 
@@ -52,6 +61,9 @@ routeToString route =
 routeToPieces : Route -> List String
 routeToPieces route =
     case route of
+        NotFound ->
+            [ "not-found" ]
+
         Home ->
             []
 
@@ -61,5 +73,5 @@ routeToPieces route =
         Register ->
             [ "register" ]
 
-        NotFound ->
-            [ "not-found" ]
+        Login ->
+            [ "login" ]
